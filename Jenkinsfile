@@ -27,8 +27,8 @@ pipeline {
             }
         }
 
-        stage('Terraform Init') {
-            agent {
+
+    agent {
                 docker {
                     image DOCKER_IMAGE
                     args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
