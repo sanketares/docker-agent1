@@ -2,7 +2,6 @@ pipeline {
     agent {
         docker {
             image 'hashicorp/terraform:latest' // Use the latest Terraform Docker image
-            label 'terraform-agent'
             args '-entrypoint=""' // Disable the default entrypoint
         }
     }
