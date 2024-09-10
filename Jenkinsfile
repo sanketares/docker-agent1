@@ -10,7 +10,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Ensure Docker is installed on Jenkins agent
+                    // Build Docker image
                     docker.build(DOCKER_IMAGE, '.')
                 }
             }
@@ -19,7 +19,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Push the Docker image to Docker Hub
+                    // Push Docker image to Docker Hub
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
                         docker.image(DOCKER_IMAGE).push('latest')
                     }
@@ -27,8 +27,8 @@ pipeline {
             }
         }
 
-
-    agent {
+        stage('Terraform Init') {
+            agent {
                 docker {
                     image DOCKER_IMAGE
                     args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
@@ -43,6 +43,12 @@ pipeline {
         }
         
         stage('Terraform Plan') {
+            agent {
+                docker {
+                    image DOCKER_IMAGE
+                    args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
+                }
+            }
             steps {
                 script {
                     // Run Terraform plan
