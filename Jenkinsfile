@@ -26,15 +26,14 @@ pipeline {
                 }
             }
         }
-    agent {
-        docker {
-            image 'sanket406/terraform-image:latest'
-            args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
-        }
-    }
-    
-    stages {
+
         stage('Terraform Init') {
+            agent {
+                docker {
+                    image DOCKER_IMAGE
+                    args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
+                }
+            }
             steps {
                 script {
                     // Ensure Terraform init is run
