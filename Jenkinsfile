@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'my-custom-terraform:latest' // Use your custom Docker image
+            image 'hashicorp/terraform' // Use your custom Docker image
 
         }
     }
