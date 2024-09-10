@@ -1,67 +1,39 @@
 pipeline {
-    agent any
-
+    agent {
+        docker {
+            image 'sanket406/terraform-docker'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
     environment {
-        DOCKER_IMAGE = 'sanket406/terraform-image:latest'
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
     }
-
     stages {
-        stage('Build Docker Image') {
+        stage('Checkout') {
             steps {
-                script {
-                    // Build Docker image
-                    docker.build(DOCKER_IMAGE, '.')
-                }
+                checkout scm
             }
         }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    // Push Docker image to Docker Hub
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
-                        docker.image(DOCKER_IMAGE).push('latest')
-                    }
-                }
-            }
-        }
-
         stage('Terraform Init') {
-            agent {
-                docker {
-                    image DOCKER_IMAGE
-                    args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
-                }
-            }
             steps {
-                script {
-                    // Ensure Terraform init is run
-                    sh 'terraform init'
-                }
+                sh 'terraform init'
             }
         }
-        
         stage('Terraform Plan') {
-            agent {
-                docker {
-                    image DOCKER_IMAGE
-                    args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
-                }
-            }
             steps {
-                script {
-                    // Run Terraform plan
-                    sh 'terraform plan'
-                }
+                sh 'terraform plan'
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                sh 'terraform apply -auto-approve'
             }
         }
     }
-
     post {
         always {
-            // Archive the Terraform plan output or other artifacts if needed
-            // archiveArtifacts artifacts: '**/*.tfplan', allowEmptyArchive: true
+            cleanWs()
         }
     }
 }
