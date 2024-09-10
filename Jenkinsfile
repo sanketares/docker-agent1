@@ -1,18 +1,62 @@
 pipeline {
-    agent {
-        docker {
-            image 'hashicorp/terraform' // Use your custom Docker image
+    agent any
 
-        }
+    environment {
+        DOCKER_IMAGE = 'sanket406/terraform-image:latest'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
     }
+
     stages {
-        stage('Check Terraform Version') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Check the Terraform version inside the Docker container
-                    sh 'terraform --version'
+                    // Ensure Docker is installed on Jenkins agent
+                    docker.build(DOCKER_IMAGE, '.')
                 }
             }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    // Push the Docker image to Docker Hub
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDENTIALS_ID) {
+                        docker.image(DOCKER_IMAGE).push('latest')
+                    }
+                }
+            }
+        }
+    agent {
+        docker {
+            image 'sanket406/terraform-image:latest'
+            args '-v /var/lib/jenkins/terraform:/workspace' // Optional: for mounting volumes
+        }
+    }
+    
+    stages {
+        stage('Terraform Init') {
+            steps {
+                script {
+                    // Ensure Terraform init is run
+                    sh 'terraform init'
+                }
+            }
+        }
+        
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    // Run Terraform plan
+                    sh 'terraform plan'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Archive the Terraform plan output or other artifacts if needed
+            // archiveArtifacts artifacts: '**/*.tfplan', allowEmptyArchive: true
         }
     }
 }
