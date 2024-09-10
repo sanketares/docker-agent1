@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'sanket406/terraform-docker'
+            image 'hashicorp/terraform'
             args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
@@ -12,17 +12,17 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/sanketares/docker2.git'
             }
         }
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                sh 'init'
             }
         }
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan'
+                sh 'plan'
             }
         }
         stage('Terraform Apply') {
