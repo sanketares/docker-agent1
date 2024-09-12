@@ -10,6 +10,7 @@ pipeline {
 
                     // Build the Docker image
                     docker.build("${imageName}:${imageTag}", "-f Dockerfile .")
+                    echo 'build done'
                 }
             }
         }
@@ -19,14 +20,13 @@ pipeline {
                 docker {
                     image 'terraform-image:latest'
                     args '-v /var/lib/jenkins/workspace:/workspace' // Mount Jenkins workspace
+                    echo 'agent configure'
                 }
             }
             steps {
                 script {
-                    // Run Terraform commands inside the Docker container
                     sh 'terraform init'
-                    sh 'terraform plan'
-                    sh 'terraform apply -auto-approve'
+                    echo 'completed'
                 }
             }
         }
