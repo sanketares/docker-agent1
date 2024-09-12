@@ -5,8 +5,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Define the Docker image name and tag
-                    def imageName = 'terraform-img'
+                    def imageName = 'terraform-image'
                     def imageTag = 'latest'
 
                     // Build the Docker image
@@ -16,19 +15,16 @@ pipeline {
         }
 
         stage('Run Terraform') {
-            agent {
-                docker {
-                    // Define the Docker image name and tag to run the container
-                    image 'terraform-img:latest'
-                    args '-v /workspace:/workspace'
-                }
-            }
             steps {
                 script {
                     // Run Terraform commands inside the Docker container
-                    sh 'terraform init'
-                    sh 'terraform plan'
-                    sh 'terraform apply -auto-approve'
+                    // Override ENTRYPOINT to use /bin/sh for debugging or other purposes
+                    docker.image('terraform-image:latest').inside('-entrypoint /bin/sh') {
+                        // Execute Terraform commands
+                        sh 'terraform init'
+                        sh 'terraform plan'
+                        sh 'terraform apply -auto-approve'
+                    }
                 }
             }
         }
