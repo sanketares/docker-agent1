@@ -15,16 +15,18 @@ pipeline {
         }
 
         stage('Run Terraform') {
+            agent {
+                docker {
+                    image 'terraform-image:latest'
+                    args '-v /var/lib/jenkins/workspace:/workspace' // Mount Jenkins workspace
+                }
+            }
             steps {
                 script {
                     // Run Terraform commands inside the Docker container
-                    // Override ENTRYPOINT to use /bin/sh for debugging or other purposes
-                    docker.image('terraform-image:latest').inside('-entrypoint /bin/sh') {
-                        // Execute Terraform commands
-                        sh 'terraform init'
-                        sh 'terraform plan'
-                        sh 'terraform apply -auto-approve'
-                    }
+                    sh 'terraform init'
+                    sh 'terraform plan'
+                    sh 'terraform apply -auto-approve'
                 }
             }
         }
