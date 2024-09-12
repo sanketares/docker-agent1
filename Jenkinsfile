@@ -20,6 +20,7 @@ pipeline {
                 docker {
                     // Define the Docker image name and tag to run the container
                     image 'terraform-img:latest'
+                    args '-v /workspace:/workspace'
                 }
             }
             steps {
