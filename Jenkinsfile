@@ -1,35 +1,42 @@
 pipeline {
-    agent {
-        docker {
-            image 'hashicorp/terraform'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
-    environment {
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
-    }
+    agent any
+
     stages {
-        stage('Checkout') {
+        stage('Build Docker Image') {
             steps {
-                git branch: 'main', url: 'https://github.com/sanketares/docker2.git'
+                script {
+                    // Define the Docker image name and tag
+                    def imageName = 'terraform-img'
+                    def imageTag = 'latest'
+
+                    // Build the Docker image
+                    docker.build("${imageName}:${imageTag}", "-f Dockerfile .")
+                }
             }
         }
-        stage('Terraform Init') {
-            steps {
-                sh 'init'
+
+        stage('Run Terraform') {
+            agent {
+                docker {
+                    // Define the Docker image name and tag to run the container
+                    image 'terraform-img:latest'
+                }
             }
-        }
-        stage('Terraform Plan') {
             steps {
-                sh 'plan'
-            }
-        }
-        stage('Terraform Apply') {
-            steps {
-                sh 'terraform apply -auto-approve'
+                script {
+                    // Run Terraform commands inside the Docker container
+                    sh 'terraform init'
+                    sh 'terraform plan'
+                    sh 'terraform apply -auto-approve'
+                }
             }
         }
     }
-    
+
+    post {
+        always {
+            // Clean up workspace or perform other post-build actions
+            cleanWs()
+        }
+    }
 }
