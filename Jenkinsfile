@@ -20,7 +20,6 @@ pipeline {
                 docker {
                     image 'terraform-image:latest'
                     args '-v /var/lib/jenkins/workspace:/workspace' // Mount Jenkins workspace
-                    echo 'agent configure'
                 }
             }
             steps {
